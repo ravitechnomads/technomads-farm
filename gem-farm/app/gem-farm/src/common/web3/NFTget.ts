@@ -30,7 +30,7 @@ async function getTokensByOwner(owner: PublicKey, conn: Connection) {
     });
 }
 
-async function getNFTMetadata(
+export async function getNFTMetadata(
   mint: string,
   conn: Connection,
   pubkey?: string
@@ -41,11 +41,13 @@ async function getNFTMetadata(
     const metadataPDA = await Metadata.getPDA(mint);
     var onchainMetadata = (await Metadata.load(conn, metadataPDA)).data;
     var externalMetadata = (await axios.get(onchainMetadata.data.uri)).data;
-    console.log('externalmeta', externalMetadata);
-    if (externalMetadata.collection.name != 'Sovereign') {
+    // console.log('external meta', onchainMetadata.mint);
+    if (externalMetadata.collection.name === 'Sovereign') {
+      console.log(
+        'externalMetadata.collection.name',
+        externalMetadata.collection.name
+      );
       nftArray.push(externalMetadata);
-      console.log('nftFilterData', nftArray);
-    } else {
       return {
         pubkey: pubkey ? new PublicKey(pubkey) : undefined,
         mint: new PublicKey(mint),
@@ -53,12 +55,6 @@ async function getNFTMetadata(
         externalMetadata,
       };
     }
-    // return {
-    //   pubkey: pubkey ? new PublicKey(pubkey) : undefined,
-    //   mint: new PublicKey(mint),
-    //   onchainMetadata,
-    //   externalMetadata,
-    // };
   } catch (e) {
     console.log(`failed to pull metadata for token ${mint}`);
   }

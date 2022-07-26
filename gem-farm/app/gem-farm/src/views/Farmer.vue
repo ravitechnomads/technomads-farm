@@ -48,7 +48,13 @@
         >
           End staking
         </button>
-        <button class="nes-btn is-success mr-5">Upgrade NFT</button>
+        <button
+          class="nes-btn is-success mr-5"
+          @selected-wallet-nft="handleNewSelectedNFT"
+          @click="updateNFT"
+        >
+          Upgrade NFT
+        </button>
 
         <button
           v-if="farmerState === 'pendingCooldown'"
@@ -76,20 +82,30 @@
 </template>
 
 <script lang="ts">
+const { exec } = require('child_process');
 import { defineComponent, nextTick, onMounted, ref, watch } from 'vue';
 import useWallet from '@/composables/wallet';
 import useCluster from '@/composables/cluster';
 import { initGemFarm } from '@/common/gem-farm';
-import { PublicKey } from '@solana/web3.js';
+import { Connection, PublicKey } from '@solana/web3.js';
 import ConfigPane from '@/components/ConfigPane.vue';
 import FarmerDisplay from '@/components/gem-farm/FarmerDisplay.vue';
 import Vault from '@/components/gem-bank/Vault.vue';
 import { INFT } from '@/common/web3/NFTget';
+import axios from 'axios';
+import NFTCard from '@/components/gem-bank/NFTCard.vue';
+import NFTGrid from '@/components/gem-bank/NFTGrid.vue';
+import { getNFTMetadataForMany, getNFTsByOwner } from '@/common/web3/NFTget';
+import { programs } from '@metaplex/js';
+
 import { findFarmerPDA, stringifyPKsAndBNs } from '@gemworks/gem-farm-ts';
 
 export default defineComponent({
-  components: { Vault, FarmerDisplay, ConfigPane },
-  setup() {
+  components: { Vault, FarmerDisplay, ConfigPane, NFTCard, NFTGrid },
+  props: {
+    nft: { type: Object, required: true },
+  },
+  setup(props) {
     const { wallet, getWallet } = useWallet();
     const { cluster, getConnection } = useCluster();
 
@@ -126,6 +142,24 @@ export default defineComponent({
       availableB.value = farmerAcc.value.rewardB.accruedReward
         .sub(farmerAcc.value.rewardB.paidOutReward)
         .toString();
+    };
+
+    var updateNFT = async () => {
+      console.log('updateNFT');
+      await Promise.all(
+        selectedNFTs.value.map((nft) => {
+          const mint = nft.mint;
+          console.log('mint is', mint.toBase58());
+          axios
+            .post('http://192.168.29.223:3000/updateNFT', {
+              nftToken: mint,
+            })
+            .then((response: any) => {
+              console.log(response.data);
+            });
+        })
+      );
+      console.log(`added another ${selectedNFTs.value} nft`);
     };
 
     const fetchFarn = async () => {
@@ -209,6 +243,7 @@ export default defineComponent({
     const handleNewSelectedNFT = (newSelectedNFTs: INFT[]) => {
       console.log(`selected ${newSelectedNFTs.length} NFTs`);
       selectedNFTs.value = newSelectedNFTs;
+      console.log('newSelectedNFTs', newSelectedNFTs);
     };
 
     const addSingleGem = async (
@@ -255,6 +290,7 @@ export default defineComponent({
       initFarmer,
       beginStaking,
       endStaking,
+      updateNFT,
       claim,
       handleRefreshFarmer,
       selectedNFTs,
