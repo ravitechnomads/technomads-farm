@@ -4,15 +4,18 @@
   <div v-else>
     <!--farm address-->
     <div class="nes-container with-title mb-10">
-      <p class="title">Connect to a Farm</p>
+      <p class="text-4xl text-white">
+        Connect to a Farm : Paste
+        ("73EtAt7ze1Az3WAyp3m5kGKf1WbvdNfhYE58usRw8gi9")
+      </p>
       <div class="nes-field mb-5">
-        <label for="farm">Farm address:</label>
+        <label for="farm text-white">Farm address:</label>
         <input id="farm" class="nes-input" v-model="farm" />
       </div>
     </div>
-
+    <!-- 73EtAt7ze1Az3WAyp3m5kGKf1WbvdNfhYE58usRw8gi9 -->
     <div v-if="farmerAcc">
-      <FarmerDisplay
+      <!-- <FarmerDisplay
         :key="farmerAcc"
         :farm="farm"
         :farmAcc="farmAcc"
@@ -20,7 +23,7 @@
         :farmerAcc="farmerAcc"
         class="mb-10"
         @refresh-farmer="handleRefreshFarmer"
-      />
+      /> -->
       <Vault
         :key="farmerAcc"
         class="mb-10"
@@ -36,7 +39,7 @@
         </button>
         <button
           v-if="farmerState === 'unstaked'"
-          class="nes-btn is-success mr-5"
+          class="button-style mr-5"
           @click="beginStaking"
         >
           Begin staking
@@ -48,14 +51,7 @@
         >
           End staking
         </button>
-        <button
-          class="nes-btn is-success mr-5"
-          @selected-wallet-nft="handleNewSelectedNFT"
-          @click="updateNFT"
-        >
-          Upgrade NFT
-        </button>
-
+        <!-- <button class="button-style mr-5">Upgrade NFT Step 1</button> -->
         <button
           v-if="farmerState === 'pendingCooldown'"
           class="nes-btn is-error mr-5"
@@ -63,7 +59,7 @@
         >
           End cooldown
         </button>
-        <button class="nes-btn is-warning" @click="claim">
+        <button class="button-style" @click="claim">
           Claim {{ availableA }} A / {{ availableB }} B
         </button>
       </Vault>
@@ -79,14 +75,35 @@
       </div>
     </div>
   </div>
+  <div class="flex justify-between items-center gap-10">
+    <div class="style_stepBox__gwDDS">
+      <img :src="selectedImage" alt="" class="w-40" />
+      <!-- <img src="../assets/king.svg" alt="" class="w-48" id="main_img" /> -->
+    </div>
+    <div>
+      <img src="../assets/plus.svg" alt="" class="w-48" />
+    </div>
+    <div class="style_stepBox__gwDDS">
+      <img src="../assets/layerchirag.svg" alt="" class="w-80" />
+    </div>
+    <div>
+      <img src="../assets/equals.svg" alt="" class="w-48" />
+    </div>
+    <div class="style_stepBox__gwDDS">
+      <img src="../assets/frame.svg" alt="" class="" />
+    </div>
+  </div>
+  <div class="my-10 flex justify-end">
+    <button class="button-style1" @click="updateNFT">Upgrade NFT</button>
+    <button class="button-style1" @click="getNFT">get NFT</button>
+  </div>
 </template>
-
 <script lang="ts">
-const { exec } = require('child_process');
 import { defineComponent, nextTick, onMounted, ref, watch } from 'vue';
 import useWallet from '@/composables/wallet';
 import useCluster from '@/composables/cluster';
 import { initGemFarm } from '@/common/gem-farm';
+import { TOKEN_PROGRAM_ID } from '@solana/spl-token';
 import { Connection, PublicKey } from '@solana/web3.js';
 import ConfigPane from '@/components/ConfigPane.vue';
 import FarmerDisplay from '@/components/gem-farm/FarmerDisplay.vue';
@@ -95,46 +112,62 @@ import { INFT } from '@/common/web3/NFTget';
 import axios from 'axios';
 import NFTCard from '@/components/gem-bank/NFTCard.vue';
 import NFTGrid from '@/components/gem-bank/NFTGrid.vue';
-import { getNFTMetadataForMany, getNFTsByOwner } from '@/common/web3/NFTget';
+import {
+  getNFTMetadataForMany,
+  getNFTsByOwner,
+  getNFTMetadata,
+} from '@/common/web3/NFTget';
 import { programs } from '@metaplex/js';
-
 import { findFarmerPDA, stringifyPKsAndBNs } from '@gemworks/gem-farm-ts';
-
 export default defineComponent({
   components: { Vault, FarmerDisplay, ConfigPane, NFTCard, NFTGrid },
+  data() {
+    return {
+      selectedImage: '',
+      selectedNFTs: [],
+    };
+  },
+  methods: {
+    getNFT(e: any) {
+      console.log('getNFT');
+      // for (const nft of selectedNFTs.value) {
+      //       console.log('nftData...............', nft);
+      //     }
+      console.log('selectedImage.....', this.selectedImage);
+      this.selectedNFTs.map((nft: any) => {
+        this.selectedImage = (nft.externalMetadata as any)?.image;
+        console.log('nft....', this.selectedImage);
+      });
+    },
+  },
+
   props: {
     nft: { type: Object, required: true },
   },
   setup(props) {
     const { wallet, getWallet } = useWallet();
     const { cluster, getConnection } = useCluster();
-
     let gf: any;
     watch([wallet, cluster], async () => {
       await freshStart();
     });
-
     //needed in case we switch in from another window
     onMounted(async () => {
       await freshStart();
     });
-
+    //
     // --------------------------------------- farmer details
     const farm = ref<string>();
     const farmAcc = ref<any>();
-
     const farmerIdentity = ref<string>();
     const farmerAcc = ref<any>();
     const farmerState = ref<string>();
-
     const availableA = ref<string>();
     const availableB = ref<string>();
-
     //auto loading for when farm changes
     watch(farm, async () => {
       await freshStart();
     });
-
     const updateAvailableRewards = async () => {
       availableA.value = farmerAcc.value.rewardA.accruedReward
         .sub(farmerAcc.value.rewardA.paidOutReward)
@@ -143,7 +176,6 @@ export default defineComponent({
         .sub(farmerAcc.value.rewardB.paidOutReward)
         .toString();
     };
-
     var updateNFT = async () => {
       console.log('updateNFT');
       await Promise.all(
@@ -151,7 +183,7 @@ export default defineComponent({
           const mint = nft.mint;
           console.log('mint is', mint.toBase58());
           axios
-            .post('http://192.168.29.223:3000/updateNFT', {
+            .post('http://192.168.29.223:3003/updateNFT', {
               nftToken: mint,
             })
             .then((response: any) => {
@@ -159,9 +191,7 @@ export default defineComponent({
             });
         })
       );
-      console.log(`added another ${selectedNFTs.value} nft`);
     };
-
     const fetchFarn = async () => {
       farmAcc.value = await gf.fetchFarmAcc(new PublicKey(farm.value!));
       console.log(
@@ -169,7 +199,6 @@ export default defineComponent({
         stringifyPKsAndBNs(farmAcc.value)
       );
     };
-
     const fetchFarmer = async () => {
       const [farmerPDA] = await findFarmerPDA(
         new PublicKey(farm.value!),
@@ -184,19 +213,16 @@ export default defineComponent({
         stringifyPKsAndBNs(farmerAcc.value)
       );
     };
-
     const freshStart = async () => {
       if (getWallet() && getConnection()) {
         gf = await initGemFarm(getConnection(), getWallet()!);
         farmerIdentity.value = getWallet()!.publicKey?.toBase58();
-
         //reset stuff
         farmAcc.value = undefined;
         farmerAcc.value = undefined;
         farmerState.value = undefined;
         availableA.value = undefined;
         availableB.value = undefined;
-
         try {
           await fetchFarn();
           await fetchFarmer();
@@ -205,25 +231,21 @@ export default defineComponent({
         }
       }
     };
-
     const initFarmer = async () => {
       await gf.initFarmerWallet(new PublicKey(farm.value!));
       await fetchFarmer();
     };
-
     // --------------------------------------- staking
     const beginStaking = async () => {
       await gf.stakeWallet(new PublicKey(farm.value!));
       await fetchFarmer();
       selectedNFTs.value = [];
     };
-
     const endStaking = async () => {
       await gf.unstakeWallet(new PublicKey(farm.value!));
       await fetchFarmer();
       selectedNFTs.value = [];
     };
-
     const claim = async () => {
       await gf.claimWallet(
         new PublicKey(farm.value!),
@@ -232,14 +254,11 @@ export default defineComponent({
       );
       await fetchFarmer();
     };
-
     const handleRefreshFarmer = async () => {
       await fetchFarmer();
     };
-
     // --------------------------------------- adding extra gem
     const selectedNFTs = ref<INFT[]>([]);
-
     const handleNewSelectedNFT = (newSelectedNFTs: INFT[]) => {
       console.log(`selected ${newSelectedNFTs.length} NFTs`);
       selectedNFTs.value = newSelectedNFTs;
@@ -260,7 +279,6 @@ export default defineComponent({
       );
       await fetchFarmer();
     };
-
     const addGems = async () => {
       await Promise.all(
         selectedNFTs.value.map((nft) => {
@@ -269,7 +287,6 @@ export default defineComponent({
             (nft.onchainMetadata as any).data.creators[0].address
           );
           console.log('creator is', creator.toBase58());
-
           addSingleGem(nft.mint, nft.pubkey!, creator);
         })
       );
@@ -277,7 +294,6 @@ export default defineComponent({
         `added another ${selectedNFTs.value.length} gems into staking vault`
       );
     };
-
     return {
       wallet,
       farm,
@@ -295,10 +311,51 @@ export default defineComponent({
       handleRefreshFarmer,
       selectedNFTs,
       handleNewSelectedNFT,
+
       addGems,
     };
   },
 });
 </script>
-
-<style scoped></style>
+<style scoped>
+.button-style {
+  width: 165px;
+  height: 53px;
+  background: #a07d3e;
+  clip-path: polygon(100% 0, 100% 49%, 82% 100%, 0 100%, 0 0);
+  border: none;
+  outline: none;
+  font-style: normal;
+  font-weight: 700;
+  font-size: 16px;
+  line-height: 19px;
+  text-align: center;
+  color: #ffffff;
+  margin: 0px 20px;
+}
+.button-style1 {
+  width: 425px;
+  height: 53px;
+  background: #a07d3e;
+  clip-path: polygon(100% 0, 100% 49%, 82% 100%, 0 100%, 0 0);
+  border: none;
+  outline: none;
+  font-style: normal;
+  font-weight: 700;
+  font-size: 16px;
+  line-height: 19px;
+  text-align: center;
+  color: #ffffff;
+}
+.style_stepBox__gwDDS {
+  margin: 40px 0 0 0;
+  padding: 14px;
+  width: 30%;
+  height: 500px;
+  background: #242424;
+  border-radius: 10px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+</style>

@@ -1,5 +1,5 @@
 <template>
-  <div class="nes-container with-title">
+  <div class="nes-container with-title border-class">
     <p class="title">{{ title }}</p>
     <slot />
     <div class="flex flex-wrap">
@@ -35,4 +35,9 @@ export default defineComponent({
 });
 </script>
 
-<style scoped></style>
+<style scoped>
+.border-class {
+  @apply border-4 border-solid;
+  border-color: #4c4c4c !important;
+}
+</style>

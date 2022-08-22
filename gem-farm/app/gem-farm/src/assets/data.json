@@ -1,0 +1,72 @@
+{
+    "name": "SOVEREIGN #96",
+    "symbol": "SOVRN",
+    "description": "Collection of 100 numbers on the blockchain. This is the number 1/100.",
+    "seller_fee_basis_points": 750,
+    "image": "https://nftstorage.link/ipfs/bafybeidwvhx2x3vudcsoapfzqzxmy6rdczmxtmdfddu5wjtbh6p7vyjwz4/96.png",
+    "external_url": "https://thesovereign.co/",
+    "edition": 96,
+    "attributes": [
+        {
+            "trait_type": "Background",
+            "value": "Rainbow Spotlight"
+        },
+        {
+            "trait_type": "Back Piece",
+            "value": "Porcupine"
+        },
+        {
+            "trait_type": "Body Type",
+            "value": "BrokenCyborg Gold"
+        },
+        {
+            "trait_type": "Crystal",
+            "value": "Red"
+        },
+        {
+            "trait_type": "Outfit",
+            "value": "Gold TerminatorJacket"
+        },
+        {
+            "trait_type": "Head Piece",
+            "value": "Simple Gold"
+        },
+        {
+            "trait_type": "Face",
+            "value": "Ash Sponge"
+        },
+        {
+            "trait_type": "Ear",
+            "value": "MillenaElph Gold"
+        },
+        {
+            "trait_type": "Head Gear",
+            "value": "FlatCap"
+        }
+    ],
+    "collection": {
+        "name": "Sovereign",
+        "family": "Sovereign"
+    },
+    "properties": {
+        "files": [
+            {
+                "uri": "https://nftstorage.link/ipfs/bafybeidwvhx2x3vudcsoapfzqzxmy6rdczmxtmdfddu5wjtbh6p7vyjwz4/96.png",
+                "type": "image/png",
+                "cdn": true
+            },
+            {
+                "uri": "ipfs://bafybeidwvhx2x3vudcsoapfzqzxmy6rdczmxtmdfddu5wjtbh6p7vyjwz4/96.png",
+                "type": "image/png",
+                "cdn": false
+            }
+        ],
+        "category": "image",
+        "creators": [
+            {
+                "address": "6j4nNrozTJkk1zatiXHezSLZArnRUq3WkGKHACThXGpZ",
+                "share": 100
+            }
+        ]
+    }
+}
