@@ -77,7 +77,7 @@
   </div>
   <div class="flex justify-between items-center gap-10">
     <div class="style_stepBox__gwDDS">
-      <img :src="selectedImage" alt="" class="w-40" />
+      <img :src="selectedImage" alt="" class="w-72" />
       <!-- <img src="../assets/king.svg" alt="" class="w-48" id="main_img" /> -->
     </div>
     <div>
@@ -260,9 +260,12 @@ export default defineComponent({
     // --------------------------------------- adding extra gem
     const selectedNFTs = ref<INFT[]>([]);
     const handleNewSelectedNFT = (newSelectedNFTs: INFT[]) => {
-      console.log(`selected ${newSelectedNFTs.length} NFTs`);
-      selectedNFTs.value = newSelectedNFTs;
-      console.log('newSelectedNFTs', newSelectedNFTs);
+      for (let i = 0; i < newSelectedNFTs.length; i++) {
+        selectedNFTs.value.push(newSelectedNFTs[i]);
+
+        console.log('newSelectedNFTs....', newSelectedNFTs);
+      }
+      // console.log(`selected ${newSelectedNFTs.length} NFTs`);
     };
 
     const addSingleGem = async (
@@ -311,7 +314,6 @@ export default defineComponent({
       handleRefreshFarmer,
       selectedNFTs,
       handleNewSelectedNFT,
-
       addGems,
     };
   },
